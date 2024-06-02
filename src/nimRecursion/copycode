@@ -1,0 +1,863 @@
+package nimRecursion;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Random;
+import java.applet.*;
+
+
+//sound specific imports:
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
+public class NimGameGUI {
+    private JFrame frame;
+    private JLabel label;
+    private JFrame insFrame;
+    private JLabel insLabel; 
+    private StonesPanel stonesPanel;
+    private ArrayList<JButton> buttons = new ArrayList<>(); 
+    private JLabel moveCount;
+    private int[] rowsSticks;
+    private int frozenRow = -1;
+    private static boolean isFirstGame = true ; 
+    private int numMoves = 0;
+    
+
+    public NimGameGUI(int totalRows) {
+    	
+    		
+    	
+        frame = new JFrame("Nim Game");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+        moveCount = new JLabel("Number of moves: ");
+         
+        label = new JLabel("Nim Game");
+        
+        frame.add(label, BorderLayout.NORTH);
+        frame.add(moveCount, BorderLayout.SOUTH);
+
+        rowsSticks = new int[totalRows];
+        
+        
+        createRowButtons(0, totalRows);
+
+        stonesPanel = new StonesPanel(totalRows);
+        frame.add(stonesPanel, BorderLayout.CENTER);
+        stonesPanel.setRowsSticks(rowsSticks);
+
+        JPanel bottomPanel = new JPanel(new FlowLayout());
+        JButton newGameButton = new JButton("Next Level");
+        newGameButton.addActionListener(e -> {
+            frame.dispose();
+    
+            new NimGameGUI(totalRows + 1);
+            playNextLevelSound();
+            //playFreezeSound();
+        });
+        bottomPanel.add(newGameButton);
+        bottomPanel.add(moveCount);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
+
+        frame.pack();
+        frame.setVisible(true);
+        
+        if( isFirstGame) {
+        	showInstructions();  
+        	isFirstGame = false; 
+        }
+        
+  
+    }
+    
+    public void turns(int i) {  //even number = player, odd = computer
+    	if(checkWin()) {
+    		if( i % 2 == 0) System.out.println("YOU WIN!!!!!!");
+    		else System.out.println("Computer wins!!, better luck next time....");
+    	}
+    	else {
+    		if( i %2 ==0) {
+    			//persons turn;
+    			turns(i);
+    		}
+    		else {
+    			turns(i)
+    			//computer's turn 
+    			//call upon recursive sequence. 
+    		}
+    		//else do something else
+    		//recursive call 
+    	}
+    	
+    	
+    	
+    }
+    
+    public boolean checkWin() {
+    	int sum = 0;
+    	for( int i = 0; i < rowSticks.length; i++) {
+    		sum+= rowSticks[i];
+    		
+    		if( sum >1) {
+    			return false; 
+    		}
+    	return true; 
+    	}
+    }
+    
+    
+    
+    
+    private void playNextLevelSound() {
+    	try {
+            File soundFile = new File("/Users/namanrusia/Desktop/RecursionProject/nimRecursion/src/nimRecursion/bop.wav"); // Replace with the actual path to your sound file
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /*private void playFreezeSound() {
+    	try {
+            File soundFile = new File("/Users/namanrusia/Desktop/RecursionProject/nimRecursion/src/nimRecursion/freeze.wav"); // Replace with the actual path to your sound file
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }*/
+    
+    public void playFireSound() {
+    	//TODO implementation, if choosing to do fire feature. 
+    }
+    
+
+    private void createRowButtons(int currentRow, int totalRows) {
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(totalRows, 1));
+
+        createButtonsRecursive(buttonPanel, currentRow, totalRows);  //call to recursive method to 
+
+        frame.add(buttonPanel, BorderLayout.EAST);
+    }
+    
+    public void showInstructions() {  //prints a new frame with instructions. 
+  
+    	
+    	//instructions window
+        insFrame = new JFrame("Instructions. *CLOSE WINDOW TO ENTER GAME*");
+        
+        insLabel = new JLabel("<html>This is the Fire and Ice version of game of nim, so get ready to have some fun!"
+        		+ "<BR>This is a player V. computer game. Player plays first, after which, the computer's turn will start."
+        		+ "<BR>After every turn, a new Row will be chosen and then frozen! While a row is frozen, no stones can be removed from that row."
+        		+ "<BR>You are allowed to remove as many stones as you would like, but only from one row. "
+        		+ "<BR> Clicking the 'next level' button will increase the game's complexity, and will increase the number of rows by 1.  "
+        		+ "<BR> To win this game, you have to be the player who does'nt choose the last stone. Keep removing stones untill only one is left and the person whoose turn it is when there is only one stone left looses.  "
+        		+ "<BR>When a row is orange, it means that fire has struck it! stones will dissapear randomly. "
+        		+ "<BR>Enjoy your game. Close this window, and then proceed to play the game. "
+        		+ "<BR>*YOU HAVE TO CLOSE OR MOVE THIS WINDOW TO SEE THE GAME BEHIND IT* </html>");  // html printing is used to accomplish the goal of having multi-line statements. <BR> is the name as /n in sysoutprint
+        insFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        insFrame.setLayout(new BorderLayout());
+        insFrame.add(insLabel, BorderLayout.NORTH);
+        insFrame.setVisible(true);
+        insFrame.setSize(600,300);
+        
+
+    }
+    
+    
+    //recursive method #1: to create buttons for each row. 
+    private void createButtonsRecursive(JPanel buttonPanel, int currentRow, int totalRows) {
+        if (currentRow >= totalRows) {
+            return;  //return nothing = exit method/loop
+        }
+
+        int sticksForRow = 2 * currentRow + 1;  //equation for number of sticks in a row.
+        rowsSticks[ currentRow ] = sticksForRow;
+        JButton button = new JButton("Remove from row " + (currentRow + 1));
+        button.addActionListener(new ButtonListener(currentRow, sticksForRow));
+        buttons.add(button);  //adds this button to the arraylist of button objects for all rows. 
+        buttonPanel.add(button);  //adds button to panel(label), so it can be seen.
+
+        createButtonsRecursive(buttonPanel, currentRow + 1, totalRows);  //recursive call 
+    }
+
+    private void freezeRandomRow(int totalRows) {
+        frozenRow = new Random().nextInt(totalRows);
+        stonesPanel.repaint();
+    }
+
+    private class ButtonListener implements ActionListener {  //class created to implement what happens when buttons are clicked. 
+        private int rowIndex;
+        private int maxSticks;
+
+        public ButtonListener(int rowIndex, int maxSticks) {
+            this.rowIndex = rowIndex;
+            this.maxSticks = maxSticks;
+        }
+
+        @Override  //@override means that actionperformed() method is replacing a previously defined method in the default actionListner class. 
+        public void actionPerformed(ActionEvent e) {
+            if (rowIndex == frozenRow) {
+                JOptionPane.showMessageDialog(frame, "This row is frozen! You cannot remove stones from it this turn.");
+                return;
+            }
+
+            String input = JOptionPane.showInputDialog(frame, "How many stones to remove from row " + (rowIndex + 1) + "? (max " + maxSticks + ")");
+            try {
+                int removeStones = Integer.parseInt(input);  
+                if (removeStones >= 1 && removeStones <= maxSticks) {
+                    rowsSticks[rowIndex] -= removeStones;
+                    stonesPanel.repaint();
+                    freezeRandomRow(rowsSticks.length);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Invalid number of stones!");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter a valid number!");
+            }
+        }
+    }
+
+    private class StonesPanel extends JPanel {
+        private int[] rowsSticks;
+        private final int STONE_DIAMETER = 25;  //can make the stones bigger or smaller, doesnt change so it is final 
+
+        public StonesPanel(int totalRows) {
+            this.setPreferredSize(new Dimension(300, STONE_DIAMETER * totalRows));
+            this.setBackground(Color.BLACK);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            paintStonesRecursive(g, 0);
+        }
+
+        private void paintStonesRecursive(Graphics g, int rowIndex) {
+            if (rowIndex >= rowsSticks.length) {
+                return;
+            }
+
+            int xOffset = 10;
+            paintSingleRowRecursive(g, rowIndex, xOffset, 0);
+
+            paintStonesRecursive(g, rowIndex + 1);
+        }
+
+  void paintSingleRowRecursive(Graphics g, int rowIndex, int xOffset, int j) {
+            if (j >= rowsSticks[rowIndex]) {
+            	//playFreezeSound();
+                return;
+            }
+
+            if (rowIndex == frozenRow) {
+                g.setColor(Color.BLUE);
+            } else {
+                g.setColor(Color.RED);
+            }
+            g.fillOval(xOffset, rowIndex * (STONE_DIAMETER + 5), STONE_DIAMETER, STONE_DIAMETER);
+
+            paintSingleRowRecursive(g, rowIndex, xOffset + STONE_DIAMETER + 5, j + 1);
+        }
+
+        public void setRowsSticks(int[] rowsSticks) {
+            this.rowsSticks = rowsSticks;
+        }
+    }
+
+    public static void main(String[] args) {
+        new NimGameGUI(3);
+    }
+}
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+SECOND FILE: TOWERS GAME VERSION SAVE: DOWN BELOW. 
+-------------------------------------------------------------------------------------------------------------------------------------------------
+package nimRecursion;
+
+import javax.sound.sampled.*;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class NimGameGUI {
+    private JFrame frame;
+    private JPanel towerPanel;
+    private JPanel twists;
+    private JFrame insFrame;
+    private JLabel insLabel; 
+    private ArrayList<JButton> towerButtons = new ArrayList<>();
+    private ArrayList<Tower> towers = new ArrayList<>();
+    private boolean isPlayerTurn = true;
+    private JButton computerMoveButton;
+    private JButton earthquakeButton;
+    private JButton instructionsButton;
+    private JButton nextLevelButton;
+    private int numTowers;
+    private boolean earthquakeTried = false;
+
+    public NimGameGUI(int n) {
+        numTowers = n;
+        frame = new JFrame("Towers of Logic, Naman Rusia's Recursion Project ATDS");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
+
+        nextLevelButton = new JButton("Next level here!");
+        twists = new JPanel();
+        twists.setLayout(new FlowLayout());
+        frame.add(twists, BorderLayout.NORTH);
+
+        instructionsButton = new JButton("Click here for instructions!");
+        twists.add(instructionsButton);
+        twists.setBackground(Color.BLACK);
+        twists.add(nextLevelButton);
+
+        towerPanel = new JPanel();
+        towerPanel.setBackground(new Color(100,150,0));
+
+        earthquakeButton = new JButton("EarthQuake!");
+
+        towerPanel.setLayout(new FlowLayout());
+        frame.add(towerPanel, BorderLayout.CENTER);
+
+        for (int i = 0; i < n; i++) {
+            towers.add(new Tower(new Random().nextInt(5) + 3));
+        }
+        updateTowerPanel();
+
+        computerMoveButton = new JButton("Computer Move");
+        
+        instructionsButton.addActionListener(e -> {
+        	showInstructions();
+        });
+
+        computerMoveButton.addActionListener(e -> {
+            if (!isPlayerTurn) {
+                computerMove();
+                isPlayerTurn = true;
+            }
+        });
+
+        earthquakeButton.addActionListener(e -> {
+            if (!earthquakeTried) implementEarthquake(numTowers-1);
+        });
+
+        nextLevelButton.addActionListener(e -> {
+            frame.dispose();
+            new NimGameGUI(n+1);
+            playNextLevelSound();
+        });
+
+        frame.add(computerMoveButton, BorderLayout.SOUTH);
+        twists.add(earthquakeButton);
+
+        frame.setVisible(true);
+    }
+
+    private void playNextLevelSound() {
+        try {
+            File soundFile = new File("/Users/namanrusia/Desktop/RecursionProject/nimRecursion/src/nimRecursion/nextLevel.wav");
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playEarthquakeSound() {
+        try {
+            File soundFile = new File("/Users/namanrusia/Desktop/RecursionProject/nimRecursion/src/nimRecursion/earthquake.wav");
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateTowerPanel() {
+        towerPanel.removeAll();
+        towerButtons.clear();
+
+        for (int i = 0; i < towers.size(); i++) {
+            Tower tower = towers.get(i);
+            JButton button = new JButton(tower.blocks + " blocks");
+            button.setPreferredSize(new Dimension(100, tower.blocks * 30));
+            button.setBackground(Color.GREEN);
+            button.setForeground(Color.BLACK);
+            int finalI = i;
+            button.addActionListener(e -> {
+                if (isPlayerTurn) {
+                    String input = JOptionPane.showInputDialog("Blocks to remove from tower " + (finalI + 1) + ":");
+                    if (input != null && !input.isEmpty()) {
+                        try {
+                            int blocksToRemove = Integer.parseInt(input);
+                            if (blocksToRemove > 0 && blocksToRemove <= tower.blocks) {
+                                playerMove(finalI, blocksToRemove);
+                                isPlayerTurn = false;
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(frame, "Please enter a valid number!");
+                        }
+                    }
+                }
+            });
+            towerButtons.add(button);
+            towerPanel.add(button);
+        }
+
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void implementEarthquake(int n) {
+        if (n == 0) {
+            playEarthquakeSound();
+            if (towers.get(n).getHeight() > 2) {
+                towers.get(n).setHeight(towers.get(n).getHeight() - 2);
+            } else {
+                towers.get(n).setHeight(1);
+            }
+            earthquakeTried = true;
+            updateTowerPanel();
+        } else {
+            if (towers.get(n).getHeight() > 2) {
+                towers.get(n).setHeight(towers.get(n).getHeight() - 2);
+            } else {
+                towers.get(n).setHeight(1);
+            }
+            implementEarthquake(n - 1);
+        }
+    }
+
+    private void playerMove(int towerIndex, int blocksToRemove) {
+        Tower tower = towers.get(towerIndex);
+        if (blocksToRemove >= tower.blocks) {
+            JOptionPane.showMessageDialog(frame, "You cannot remove all the blocks from a tower!");
+            
+            return;
+        }
+        tower.blocks -= blocksToRemove; // Reduce the height of the primary tower
+        growAdjacentTowers(towerIndex, 2); // Grow adjacent towers
+        updateTowerPanel();
+        checkEndGame();
+    }
+
+    private void computerMove() {
+        Tower tallestTower = towers.get(0);
+        int tallestTowerIndex = 0;
+        for (int i = 0; i < towers.size(); i++) {
+            if (towers.get(i).blocks > tallestTower.blocks) {
+                tallestTower = towers.get(i);
+                tallestTowerIndex = i;
+            }
+        }
+        // Ensure the computer does not remove all blocks from the tower
+        int blocksToRemove = new Random().nextInt(tallestTower.blocks); // This will now range from 0 to (tower height - 1)
+        if (blocksToRemove == 0) { // If 0 blocks are selected to be removed, just remove 1 for simplicity
+            blocksToRemove = 1;
+        }
+        tallestTower.blocks -= blocksToRemove; // Reduce the height of the primary tower
+        growAdjacentTowers(tallestTowerIndex, 2); // Grow adjacent towers
+        updateTowerPanel();
+        JOptionPane.showMessageDialog(frame, "Computer removed " + blocksToRemove + " blocks from tower " + (tallestTowerIndex + 1) + "!");
+        checkEndGame();
+    }
+
+    private void growAdjacentTowers(int towerIndex, int growthAmount) {
+        // Base case: If growthAmount is 0, return
+        if (growthAmount <= 0) return;
+
+        // Adjust the towers immediately adjacent to the primary tower
+        if (towerIndex > 0) {
+            towers.get(towerIndex - 1).blocks += growthAmount;
+        }
+        if (towerIndex < towers.size() - 1) {
+            towers.get(towerIndex + 1).blocks += growthAmount;
+        }
+
+        // Adjust the towers two away from the primary tower
+        if (towerIndex > 1) {
+            towers.get(towerIndex - 2).blocks += growthAmount - 1;
+        }
+        if (towerIndex < towers.size() - 2) {
+            towers.get(towerIndex + 2).blocks += growthAmount - 1;
+        }
+    }
+
+
+    private void checkEndGame() {
+        for (Tower tower : towers) {
+            if (tower.blocks >= 15) {
+            	String winner; 
+                if( isPlayerTurn == false) {
+                	 winner = "Computer";
+                }
+                else winner = "Player";
+                JOptionPane.showMessageDialog(frame, winner + " wins!");
+                System.exit(0);
+                new NimGameGUI(numTowers +1);
+                playNextLevelSound();
+                
+            }
+        }
+    }
+    
+    public void showInstructions() {  //prints a new frame with instructions. 
+  
+    	
+    	//instructions window
+        insFrame = new JFrame("Towers of Logic Instructions:");
+        
+        insLabel = new JLabel("<html>This game is called 'The towers of Logic'. "
+        		+ "<BR>This is a player V. computer game. Player plays first, after which, it will be the computer's turn. Press the 'computer turn' button to show what move the computer plays, and only then you will be able to play your next move. "
+        		+ "<BR> The objective of this game is to beat the computer and be the first person to build a tower that is at least 15 levels tall. To do this, you have to remove levels from towers.  "
+        		+ "<BR>Sounds confusing, right? Let me explain. You can choose to remove as many levels from any tower as you want (min height you can reduce a tower to is 1). "
+        		+ "<BR>Once you remove levels from a tower of your choice. The Towers to the immediate left and right of the tower chosen will increase in height by 2. The towers one over from the tower chosen will grow in height by 1."
+        		+ "<BR>So, to increase the height of towers, you must reduce the height of one tower first. Strategy is emminent in this game."
+        		+ "<BR>At each level, you are allowed to use the 'Earthquake' feature only once. When used, the height of all the towers wil reduce by 2. This can get you out of a jam if the computer is at the verge of winning at two or more avanues!"
+        		+ "<BR>You can increase your level at any time. When you choose to move on to the next level, then the number of towers will increase by 1. "
+        		+ "<BR>The best way to learn this game is to play! Have fun, and good Luck! Close this window to continue to the game.</html>");  // html printing is used to accomplish the goal of having multi-line statements. <BR> is the name as /n in sysoutprint
+        insFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        insFrame.setLayout(new BorderLayout());
+        insFrame.add(insLabel, BorderLayout.NORTH);
+        insFrame.setVisible(true);
+        insFrame.setSize(600,500);
+        
+
+    }
+
+    private class Tower {
+        int blocks;
+
+        Tower(int blocks) {
+            this.blocks = blocks;
+        }
+
+        public int getHeight() {
+            return this.blocks;
+        }
+
+        private void setHeight(int height) {
+            this.blocks = height;
+        }
+    }
+    
+
+    public static void main(String[] args) {
+        new NimGameGUI(5);
+    }
+}
+
+
+---------------
+
+
+package nimRecursion;
+
+import javax.sound.sampled.*;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class TOLgui {
+    private JFrame frame;
+    private JPanel towerPanel;
+    private JPanel twists;
+    private JFrame insFrame;
+    private JLabel insLabel; 
+    private ArrayList<JButton> towerButtons = new ArrayList<>();
+    private ArrayList<Tower> towers = new ArrayList<>();
+    private boolean isPlayerTurn = true;
+    private JButton computerMoveButton;
+    private JButton earthquakeButton;
+    private JButton instructionsButton;
+    private JButton nextLevelButton;
+    private int numTowers;
+    private boolean earthquakeTried = false;
+
+    public TOLgui(int n) {
+        numTowers = n;
+        frame = new JFrame("Towers of Logic, Naman Rusia's Recursion Project ATDS");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
+
+        nextLevelButton = new JButton("Next level here!");
+        twists = new JPanel();
+        twists.setLayout(new FlowLayout());
+        frame.add(twists, BorderLayout.NORTH);
+
+        instructionsButton = new JButton("Click here for instructions!");
+        twists.add(instructionsButton);
+        twists.setBackground(Color.BLACK);
+        twists.add(nextLevelButton);
+
+        towerPanel = new JPanel();
+        towerPanel.setBackground(new Color(100,150,0));
+
+        earthquakeButton = new JButton("EarthQuake!");
+
+        towerPanel.setLayout(new FlowLayout());
+        frame.add(towerPanel, BorderLayout.CENTER);
+
+        for (int i = 0; i < n; i++) {
+            towers.add(new Tower(new Random().nextInt(5) + 3));
+        }
+        updateTowerPanel();
+
+        computerMoveButton = new JButton("Computer Move");
+        
+        instructionsButton.addActionListener(e -> {
+        	showInstructions();
+        });
+
+        computerMoveButton.addActionListener(e -> {
+            if (!isPlayerTurn) {
+                computerMove();
+                isPlayerTurn = true;
+            }
+        });
+
+        earthquakeButton.addActionListener(e -> {
+            if (!earthquakeTried) implementEarthquake(numTowers-1);
+        });
+
+        nextLevelButton.addActionListener(e -> {
+            frame.dispose();
+            new TOLgui(n+1);
+            playNextLevelSound();
+        });
+
+        frame.add(computerMoveButton, BorderLayout.SOUTH);
+        twists.add(earthquakeButton);
+
+        frame.setVisible(true);
+    }
+
+    private void playNextLevelSound() {
+        try {
+            File soundFile = new File("/Users/namanrusia/Desktop/RecursionProject/nimRecursion/src/nimRecursion/nextLevel.wav");
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playEarthquakeSound() {
+        try {
+            File soundFile = new File("/Users/namanrusia/Desktop/RecursionProject/nimRecursion/src/nimRecursion/earthquake.wav");
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateTowerPanel() {
+        towerPanel.removeAll();
+        towerButtons.clear();
+
+        for (int i = 0; i < towers.size(); i++) {
+            Tower tower = towers.get(i);
+            JButton button = new JButton(tower.blocks + " blocks");
+            button.setPreferredSize(new Dimension(100, tower.blocks * 30));
+            button.setBackground(Color.GREEN);
+            button.setForeground(Color.BLACK);
+            int finalI = i;
+            button.addActionListener(e -> {
+                if (isPlayerTurn) {
+                    String input = JOptionPane.showInputDialog("Blocks to remove from tower " + (finalI + 1) + ":");
+                    if (input != null && !input.isEmpty()) {
+                        try {
+                            int blocksToRemove = Integer.parseInt(input);
+                            if (blocksToRemove > 0 && blocksToRemove <= tower.blocks) {
+                                playerMove(finalI, blocksToRemove);
+                                isPlayerTurn = false;
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(frame, "Please enter a valid number!");
+                        }
+                    }
+                }
+            });
+            towerButtons.add(button);
+            towerPanel.add(button);
+        }
+
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void implementEarthquake(int n) {
+        if (n == 0) {
+            playEarthquakeSound();
+            if (towers.get(n).getHeight() > 2) {
+                towers.get(n).setHeight(towers.get(n).getHeight() - 2);
+            } else {
+                towers.get(n).setHeight(1);
+            }
+            earthquakeTried = true;
+            updateTowerPanel();
+        } else {
+            if (towers.get(n).getHeight() > 2) {
+                towers.get(n).setHeight(towers.get(n).getHeight() - 2);
+            } else {
+                towers.get(n).setHeight(1);
+            }
+            implementEarthquake(n - 1);
+        }
+    }
+
+    private void playerMove(int towerIndex, int blocksToRemove) {
+        Tower tower = towers.get(towerIndex);
+        if (blocksToRemove >= tower.blocks) {
+            JOptionPane.showMessageDialog(frame, "You cannot remove all the blocks from a tower!");
+            
+            return;
+        }
+        tower.blocks -= blocksToRemove; // Reduce the height of the primary tower
+        growAdjacentTowers(towerIndex, 2); // Grow adjacent towers
+        updateTowerPanel();
+        checkEndGame();
+    }
+
+    private void computerMove() {
+        Tower tallestTower = towers.get(0);
+        int tallestTowerIndex = 0;
+        for (int i = 0; i < towers.size(); i++) {
+            if (towers.get(i).blocks > tallestTower.blocks) {
+                tallestTower = towers.get(i);
+                tallestTowerIndex = i;
+            }
+        }
+        // Ensure the computer does not remove all blocks from the tower
+        int blocksToRemove = new Random().nextInt(tallestTower.blocks); // This will now range from 0 to (tower height - 1)
+        if (blocksToRemove == 0) { // If 0 blocks are selected to be removed, just remove 1 for simplicity
+            blocksToRemove = 1;
+        }
+        tallestTower.blocks -= blocksToRemove; // Reduce the height of the primary tower
+        growAdjacentTowers(tallestTowerIndex, 2); // Grow adjacent towers
+        updateTowerPanel();
+        JOptionPane.showMessageDialog(frame, "Computer removed " + blocksToRemove + " blocks from tower " + (tallestTowerIndex + 1) + "!");
+        checkEndGame();
+    }
+
+    private void growAdjacentTowers(int towerIndex, int growthAmount) {
+        // Base case: If growthAmount is 0, return
+        if (growthAmount <= 0) return;
+
+        // Adjust the towers immediately adjacent to the primary tower
+        if (towerIndex > 0) {
+            towers.get(towerIndex - 1).blocks += growthAmount;
+        }
+        if (towerIndex < towers.size() - 1) {
+            towers.get(towerIndex + 1).blocks += growthAmount;
+        }
+
+        // Adjust the towers two away from the primary tower
+        if (towerIndex > 1) {
+            towers.get(towerIndex - 2).blocks += growthAmount - 1;
+        }
+        if (towerIndex < towers.size() - 2) {
+            towers.get(towerIndex + 2).blocks += growthAmount - 1;
+        }
+    }
+
+
+    private void checkEndGame() {
+        for (Tower tower : towers) {
+            if (tower.blocks >= 15) {
+            	String winner; 
+                if( isPlayerTurn == false) {
+                	 winner = "Computer";
+                }
+                else winner = "Player";
+                JOptionPane.showMessageDialog(frame, winner + " wins!");
+                System.exit(0);
+                new TOLgui(numTowers +1);
+                playNextLevelSound();
+                
+            }
+        }
+    }
+    
+    public void showInstructions() {  //prints a new frame with instructions. 
+  
+    	
+    	//instructions window
+        insFrame = new JFrame("Towers of Logic Instructions:");
+        
+        insLabel = new JLabel("<html>This game is called 'The towers of Logic'. "
+        		+ "<BR>This is a player V. computer game. Player plays first, after which, it will be the computer's turn. Press the 'computer turn' button to show what move the computer plays, and only then you will be able to play your next move. "
+        		+ "<BR> The objective of this game is to beat the computer and be the first person to build a tower that is at least 15 levels tall. To do this, you have to remove levels from towers.  "
+        		+ "<BR>Sounds confusing, right? Let me explain. You can choose to remove as many levels from any tower as you want (min height you can reduce a tower to is 1). "
+        		+ "<BR>Once you remove levels from a tower of your choice. The Towers to the immediate left and right of the tower chosen will increase in height by 2. The towers one over from the tower chosen will grow in height by 1."
+        		+ "<BR>So, to increase the height of towers, you must reduce the height of one tower first. Strategy is emminent in this game."
+        		+ "<BR>At each level, you are allowed to use the 'Earthquake' feature only once. When used, the height of all the towers wil reduce by 2. This can get you out of a jam if the computer is at the verge of winning at two or more avanues!"
+        		+ "<BR>You can increase your level at any time. When you choose to move on to the next level, then the number of towers will increase by 1. "
+        		+ "<BR>The best way to learn this game is to play! Have fun, and good Luck! Close this window to continue to the game.</html>");  // html printing is used to accomplish the goal of having multi-line statements. <BR> is the name as /n in sysoutprint
+        insFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        insFrame.setLayout(new BorderLayout());
+        insFrame.add(insLabel, BorderLayout.NORTH);
+        insFrame.setVisible(true);
+        insFrame.setSize(600,500);
+        
+
+    }
+
+    private class Tower {
+        int blocks;
+
+        Tower(int blocks) {
+            this.blocks = blocks;
+        }
+
+        public int getHeight() {
+            return this.blocks;
+        }
+
+        private void setHeight(int height) {
+            this.blocks = height;
+        }
+    }
+    
+
+    public static void main(String[] args) {
+        new TOLgui(5);
+    }
+}
+
